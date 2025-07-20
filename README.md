@@ -20,7 +20,9 @@ Frontend: HTML, Tailwind CSS, JavaScript
 Database: In-memory Python dictionary (for demonstration purposes)
 
 Project Structure
-URL-Shortener-Project/
+URL-Shortener-
+```bash
+Project/
 ├── backend/
 │   ├── app.py              # Main Flask application
 │   └── requirements.txt    # Python dependencies
@@ -30,7 +32,7 @@ URL-Shortener-Project/
 │
 ├── .gitignore              # Files to be ignored by Git
 └── README.md               # This file
-
+```
 Getting Started
 Follow these instructions to get a copy of the project up and running on your local machine for development and testing purposes.
 
