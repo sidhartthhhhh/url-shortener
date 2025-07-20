@@ -20,7 +20,9 @@ Frontend: HTML, Tailwind CSS, JavaScript
 Database: In-memory Python dictionary (for demonstration purposes)
 
 Project Structure
-URL-Shortener-Project/
+URL-Shortener-
+```bash
+Project/
 ├── backend/
 │   ├── app.py              # Main Flask application
 │   └── requirements.txt    # Python dependencies
@@ -30,7 +32,7 @@ URL-Shortener-Project/
 │
 ├── .gitignore              # Files to be ignored by Git
 └── README.md               # This file
-
+```
 Getting Started
 Follow these instructions to get a copy of the project up and running on your local machine for development and testing purposes.
 
@@ -41,23 +43,27 @@ pip and venv
 
 Installation & Setup
 Clone the repository:
-
+```
 git clone https://github.com/your-username/url-shortener-flask.git
 cd url-shortener-flask
-
+```
 Set up and activate the backend virtual environment:
-
+```
 cd backend
 python -m venv venv
+```
 # On macOS/Linux
+```
 source venv/bin/activate
+```
 # On Windows
+```
 venv\Scripts\activate
-
+```
 Install backend dependencies:
-
+```
 pip install -r requirements.txt
-
+```
 Configure the IP Address:
 Before running, you need to configure the server's IP address so other devices can connect to it.
 
@@ -70,9 +76,9 @@ Open frontend/index.html and update the API_BASE_URL variable to match.
 Running the Application
 Start the backend server:
 From the backend/ directory, run:
-
+```
 python app.py
-
+```
 The server will start on http://<YOUR_IP_ADDRESS>:5000.
 
 Launch the frontend:
