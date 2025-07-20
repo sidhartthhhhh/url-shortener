@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>URL Shortener (Frontend for Python API)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 flex items-center justify-center min-h-screen">
+
+    <div class="w-full max-w-2xl mx-auto p-4">
+        <div class="bg-white rounded-2xl shadow-lg p-6 md:p-10">
+            <header class="text-center mb-8">
+                <h1 class="text-3xl md:text-4xl font-bold text-gray-900">URL Shortener</h1>
+                <p class="text-gray-500 mt-2">Frontend connected to a Python backend.</p>
+            </header>
+
+            <main>
+                <!-- URL Shortening Form -->
+                <div class="space-y-4">
+                    <div>
+                        <label for="longUrl" class="block text-sm font-medium text-gray-700 mb-1">Enter Long URL</label>
+                        <input type="url" id="longUrl" placeholder="https://example.com/my-very-long-url-to-shorten" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+                    </div>
+                    <div>
+                        <label for="customAlias" class="block text-sm font-medium text-gray-700 mb-1">Custom Alias (Optional)</label>
+                        <div class="flex">
+                            <span class="inline-flex items-center px-3 rounded-l-lg border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">short.ly/</span>
+                            <input type="text" id="customAlias" placeholder="my-awesome-link" class="w-full px-4 py-2 border border-gray-300 rounded-r-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+                        </div>
+                    </div>
+                     <div>
+                        <label for="expiryDays" class="block text-sm font-medium text-gray-700 mb-1">Expires in (Days, Optional)</label>
+                        <input type="number" id="expiryDays" min="1" placeholder="30" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+                    </div>
+                    <button id="shortenBtn" class="w-full bg-indigo-600 text-white font-semibold py-3 px-4 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition transform hover:scale-105">
+                        Shorten URL
+                    </button>
+                </div>
+
+                <!-- Result and Message Display -->
+                <div id="result" class="mt-8"></div>
+
+            </main>
+        </div>
+        
+        <footer class="text-center mt-6 text-gray-400 text-sm">
+            <p>&copy; 2025 URL Shortener Inc. Sidhartha Singh</p>
+        </footer>
+    </div>
+
+    <script>
+    // --- FRONTEND LOGIC ---
+    // This script now acts as a pure frontend. It makes API calls to a backend server
+    // (which would be written in Python) to handle all the logic.
+
+    // The base URL for our Python backend API.
+    // IMPORTANT: Replace this with the actual local IP of the computer running the Python server.
+    const API_BASE_URL = "http://192.168.1.5:5000";
+
+    /**
+     * This function calls the Python backend to create a new short URL.
+     * It sends the long URL and other options in the request body.
+     */
+    async function createShortUrl(longUrl, customAlias, expiryDays) {
+        try {
+            // This is the API call to our Python backend's '/api/shorten' endpoint.
+            const response = await fetch(`${API_BASE_URL}/api/shorten`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    long_url: longUrl,
+                    custom_alias: customAlias || null, // Send null if empty
+                    expiry_days: expiryDays || null,
+                }),
+            });
+
+            // The Python backend would return a JSON response, which we parse here.
+            return await response.json();
+
+        } catch (error) {
+            console.error("Error connecting to the backend:", error);
+            // This handles network errors, like if the Python server is down.
+            return { success: false, message: 'Could not connect to the shortening service. Please try again later.' };
+        }
+    }
+
+    /**
+     * This function handles the redirection. In a real application, the user would directly
+     * navigate to `short.ly/xyz123`. The server would handle the redirect with a 301 status code.
+     * For this demo, we simulate this by checking the URL hash and calling a lookup endpoint.
+     */
+    async function lookupAndRedirect(shortCode) {
+        try {
+            // This API call asks the Python backend for the long URL.
+            // A real server would do this lookup internally and issue a 301 redirect directly.
+            const response = await fetch(`${API_BASE_URL}/api/lookup/${shortCode}`);
+            const data = await response.json();
+
+            if (data.success) {
+                // On success, we redirect the user.
+                showResult(`<p>Redirecting you to the original URL...</p>`);
+                setTimeout(() => {
+                    window.location.href = data.long_url;
+                }, 1500);
+            } else {
+                // If the backend couldn't find the link, it tells us why.
+                showResult(`<p><strong>Error:</strong> ${data.message}</p>`, true);
+            }
+        } catch (error) {
+            console.error("Error during redirection lookup:", error);
+            showResult(`<p>Could not connect to the redirection service.</p>`, true);
+        }
+    }
+
+    // --- UI & EVENT HANDLING (Mostly unchanged) ---
+    
+    const longUrlInput = document.getElementById('longUrl');
+    const customAliasInput = document.getElementById('customAlias');
+    const expiryDaysInput = document.getElementById('expiryDays');
+    const shortenBtn = document.getElementById('shortenBtn');
+    const resultDiv = document.getElementById('result');
+
+    function showResult(html, isError = false) {
+        resultDiv.innerHTML = html;
+        resultDiv.className = `mt-8 p-4 rounded-lg fade-in ${isError ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`;
+    }
+    
+    shortenBtn.addEventListener('click', async () => {
+        const longUrl = longUrlInput.value.trim();
+        const customAlias = customAliasInput.value.trim();
+        const expiryDays = expiryDaysInput.value ? parseInt(expiryDaysInput.value) : null;
+
+        if (!longUrl) {
+            showResult('<p>Please enter a URL to shorten.</p>', true);
+            return;
+        }
+        
+        shortenBtn.disabled = true;
+        shortenBtn.textContent = 'Shortening...';
+
+        // Call our new function that talks to the Python backend.
+        const result = await createShortUrl(longUrl, customAlias, expiryDays);
+        
+        if (result.success) {
+            const html = `
+                <p class="font-semibold">Success! Here is your short URL:</p>
+                <div class="mt-2 flex items-center justify-between bg-white p-3 rounded-lg border">
+                    <a href="${result.short_url}" target="_blank" class="text-indigo-600 font-mono break-all">${result.short_url}</a>
+                    <button onclick="copyToClipboard('${result.short_url}')" class="ml-4 px-3 py-1 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 text-sm">Copy</button>
+                </div>
+                <p class="text-xs text-gray-500 mt-2">Original URL: <span class="font-mono break-all">${result.long_url}</span></p>
+                ${result.expires_at ? `<p class="text-xs text-gray-500 mt-1">Expires: ${new Date(result.expires_at).toLocaleString()}</p>` : ''}
+            `;
+            showResult(html);
+        } else {
+            showResult(`<p>${result.message}</p>`, true);
+        }
+        
+        shortenBtn.disabled = false;
+        shortenBtn.textContent = 'Shorten URL';
+    });
+
+    function copyToClipboard(text) {
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        document.body.appendChild(textArea);
+        textArea.select();
+        try {
+            document.execCommand('copy');
+            alert('Copied to clipboard!');
+        } catch (err) {
+            alert('Failed to copy.');
+        }
+        document.body.removeChild(textArea);
+    }
+
+    // This function now simulates a user visiting `short.ly/xyz123`
+    function handleInitialRedirect() {
+        if (window.location.hash) {
+            const shortCode = window.location.hash.substring(1);
+            // In a real app, the server would handle this. Here, we call our lookup function.
+            lookupAndRedirect(shortCode);
+        }
+    }
+    
+    window.addEventListener('hashchange', handleInitialRedirect);
+    window.addEventListener('load', handleInitialRedirect);
+
+    </script>
+</body>
+</html>
